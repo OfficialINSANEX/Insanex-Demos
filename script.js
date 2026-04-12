@@ -29,13 +29,12 @@ function stopAllExcept(currentAudio) {
 }
 
 // ===============================
-//  SET CURRENT TRACK (nuova funzione centrale)
+//  SET CURRENT TRACK
 // ===============================
 function setCurrentTrack(box) {
     const boxes = getPlayableBoxes();
     currentIndex = boxes.indexOf(box);
 
-    // Evidenzia visivamente la traccia attiva (opzionale ma consigliato)
     document.querySelectorAll(".DemoBox").forEach(b => {
         b.classList.toggle("active-track", b === box);
     });
@@ -50,7 +49,7 @@ function getPlayableBoxes() {
 }
 
 // ===============================
-//  CREATE WAVEFORM (lazy loading)
+//  CREATE WAVEFORM
 // ===============================
 async function createWaveformForVisible(box, fileName) {
     const canvas = box.querySelector(".WaveCanvas");
@@ -96,15 +95,19 @@ async function createWaveformForVisible(box, fileName) {
         const middle = canvas.height / 2;
         const barWidth = canvas.width / samples;
 
+        // WAVEFORM CORRETTA (gold solo per tracce gold)
         function drawWaveform(progress = 0) {
             ctx.fillStyle = "#050510";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const played = box.classList.contains("gold") ? "gold" : wavePlayedColor;
+            const unplayed = box.classList.contains("gold") ? "#7a5a00" : waveUnplayedColor;
 
             normalizedData.forEach((val, i) => {
                 const barHeight = val * (canvas.height / 2);
                 const isPlayed = (i / samples) < progress;
 
-                ctx.fillStyle = isPlayed ? wavePlayedColor : waveUnplayedColor;
+                ctx.fillStyle = isPlayed ? played : unplayed;
 
                 ctx.fillRect(i * barWidth, middle - barHeight, barWidth * 0.8, barHeight);
                 ctx.fillRect(i * barWidth, middle, barWidth * 0.8, barHeight);
@@ -121,7 +124,7 @@ async function createWaveformForVisible(box, fileName) {
         audio.addEventListener("play", () => {
             stopAllExcept(audio);
             box.classList.add("selected");
-            setCurrentTrack(box);               // ← Sincronizzazione importante
+            setCurrentTrack(box);
         });
 
         audio.addEventListener("pause", () => {
@@ -138,12 +141,10 @@ async function createWaveformForVisible(box, fileName) {
                 audio.currentTime = 0;
                 audio.play();
             } else if (currentIndex < getPlayableBoxes().length - 1) {
-                // Auto next se non in loop
                 nextTrack();
             }
         });
 
-        // Click sul canvas → seek + play
         canvas.addEventListener("click", (e) => {
             const rect = canvas.getBoundingClientRect();
             const scale = canvas.width / rect.width;
@@ -157,7 +158,7 @@ async function createWaveformForVisible(box, fileName) {
             stopAllExcept(audio);
             audio.play();
 
-            setCurrentTrack(box);               // ← Sincronizzazione cruciale
+            setCurrentTrack(box);
 
             const playBtn = document.getElementById("playBtn");
             if (playBtn) playBtn.textContent = "⏸";
@@ -204,6 +205,10 @@ async function loadAudio() {
 
         const box = document.createElement("div");
         box.className = "DemoBox";
+
+        if (item.gold) {
+            box.classList.add("gold");
+        }
 
         if (!exists) {
             box.innerHTML = `
@@ -318,7 +323,6 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("prevBtn").addEventListener("click", prevTrack);
     document.getElementById("loopBtn").addEventListener("click", toggleLoop);
 
-    // Carica colori dal CSS
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";

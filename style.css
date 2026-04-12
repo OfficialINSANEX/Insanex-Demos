@@ -282,3 +282,29 @@ body {
     text-align: center;
     width: 80%;
 }
+
+/* ===============================
+   GOLD TRACK STYLE
+=============================== */
+
+.DemoBox.gold {
+    border: 2px solid gold;
+    box-shadow:
+        0 0 10px gold,
+        0 0 25px rgba(255,215,0,0.7),
+        inset 0 0 10px rgba(255,215,0,0.4);
+}
+
+.DemoBox.gold .DemoTitle {
+    color: gold;
+    font-weight: bold;
+    text-shadow: 0 0 8px gold;
+}
+
+/* Waveform gold */
+.DemoBox.gold .WaveCanvas {
+    background: #1a1400; /* oro scuro */
+    box-shadow: 0 0 12px rgba(255,215,0,0.4);
+    border: 1px solid rgba(255,215,0,0.4);
+}
+
