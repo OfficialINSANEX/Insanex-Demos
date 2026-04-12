@@ -10,8 +10,12 @@ let waveformObserver = null;
 let wavePlayedColor = "#ffaa55";
 let waveUnplayedColor = "#ff5500";
 
+// Variabili di stato globali per i controlli
+let currentIndex = -1;
+let loopEnabled = false;
+
 // ===============================
-//  STOP ALL EXCEPT ONE (pulito)
+//  STOP ALL EXCEPT ONE
 // ===============================
 function stopAllExcept(currentAudio) {
     allPlayers.forEach(p => {
@@ -22,6 +26,27 @@ function stopAllExcept(currentAudio) {
             p.box.classList.remove("selected");
         }
     });
+}
+
+// ===============================
+//  SET CURRENT TRACK (nuova funzione centrale)
+// ===============================
+function setCurrentTrack(box) {
+    const boxes = getPlayableBoxes();
+    currentIndex = boxes.indexOf(box);
+
+    // Evidenzia visivamente la traccia attiva (opzionale ma consigliato)
+    document.querySelectorAll(".DemoBox").forEach(b => {
+        b.classList.toggle("active-track", b === box);
+    });
+}
+
+// ===============================
+//  GET PLAYABLE BOXES
+// ===============================
+function getPlayableBoxes() {
+    return [...document.querySelectorAll(".DemoBox")]
+        .filter(b => b.dataset.file);
 }
 
 // ===============================
@@ -96,6 +121,7 @@ async function createWaveformForVisible(box, fileName) {
         audio.addEventListener("play", () => {
             stopAllExcept(audio);
             box.classList.add("selected");
+            setCurrentTrack(box);               // ← Sincronizzazione importante
         });
 
         audio.addEventListener("pause", () => {
@@ -107,6 +133,14 @@ async function createWaveformForVisible(box, fileName) {
         audio.addEventListener("ended", () => {
             box.classList.remove("selected");
             drawWaveform(0);
+
+            if (loopEnabled) {
+                audio.currentTime = 0;
+                audio.play();
+            } else if (currentIndex < getPlayableBoxes().length - 1) {
+                // Auto next se non in loop
+                nextTrack();
+            }
         });
 
         // Click sul canvas → seek + play
@@ -122,9 +156,12 @@ async function createWaveformForVisible(box, fileName) {
 
             stopAllExcept(audio);
             audio.play();
-        });
 
-        // ❌ RIMOSSO: doppio click per play/stop
+            setCurrentTrack(box);               // ← Sincronizzazione cruciale
+
+            const playBtn = document.getElementById("playBtn");
+            if (playBtn) playBtn.textContent = "⏸";
+        });
 
         audio.addEventListener("timeupdate", () => {
             const progress = audio.currentTime / audio.duration || 0;
@@ -139,7 +176,7 @@ async function createWaveformForVisible(box, fileName) {
 }
 
 // ===============================
-//  LOAD AUDIO LIST + TAKEN
+//  LOAD AUDIO LIST
 // ===============================
 async function loadAudio() {
     const res = await fetch("audioList.json");
@@ -155,7 +192,6 @@ async function loadAudio() {
         if (!audioExtensions.includes(ext)) continue;
 
         const filePath = "audio/" + item.file;
-
         const baseName = item.file.replace(/\.[^/.]+$/, "");
 
         let exists = true;
@@ -210,88 +246,86 @@ async function loadAudio() {
 }
 
 // ===============================
-//  GLOBAL CONTROLS + COLORI CSS
+//  PLAY INDEX
+// ===============================
+function playIndex(i) {
+    const boxes = getPlayableBoxes();
+    if (boxes.length === 0) return;
+
+    if (i < 0) i = boxes.length - 1;
+    if (i >= boxes.length) i = 0;
+
+    currentIndex = i;
+    const box = boxes[i];
+    const player = allPlayers.find(p => p.box === box);
+
+    if (!player) return;
+
+    setCurrentTrack(box);
+
+    stopAllExcept(player.audio);
+    player.audio.currentTime = 0;
+    player.audio.play();
+
+    document.getElementById("playBtn").textContent = "⏸";
+}
+
+function playPause() {
+    const boxes = getPlayableBoxes();
+    if (boxes.length === 0) return;
+
+    if (currentIndex === -1) currentIndex = 0;
+
+    const box = boxes[currentIndex];
+    const player = allPlayers.find(p => p.box === box);
+
+    if (!player) return;
+
+    if (player.audio.paused) {
+        stopAllExcept(player.audio);
+        player.audio.play();
+        document.getElementById("playBtn").textContent = "⏸";
+    } else {
+        player.audio.pause();
+        document.getElementById("playBtn").textContent = "▶️";
+    }
+}
+
+function nextTrack() {
+    playIndex(currentIndex + 1);
+}
+
+function prevTrack() {
+    playIndex(currentIndex - 1);
+}
+
+function toggleLoop() {
+    loopEnabled = !loopEnabled;
+
+    const btn = document.getElementById("loopBtn");
+    if (btn) btn.classList.toggle("active", loopEnabled);
+
+    allPlayers.forEach(p => p.audio.loop = loopEnabled);
+}
+
+// ===============================
+//  DOM CONTENT LOADED
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-
-    let currentIndex = -1;
-    let loopEnabled = false;
-
-    function getPlayableBoxes() {
-        return [...document.querySelectorAll(".DemoBox")]
-            .filter(b => b.dataset.file);
-    }
-
-    function playIndex(i) {
-        const boxes = getPlayableBoxes();
-        if (boxes.length === 0) return;
-
-        if (i < 0) i = boxes.length - 1;
-        if (i >= boxes.length) i = 0;
-
-        currentIndex = i;
-
-        const box = boxes[i];
-        const player = allPlayers.find(p => p.box === box);
-
-        if (!player) return;
-
-        stopAllExcept(player.audio);
-        player.audio.currentTime = 0;
-        player.audio.play();
-
-        document.getElementById("playBtn").textContent = "⏸";
-    }
-
-    function playPause() {
-        const boxes = getPlayableBoxes();
-        if (boxes.length === 0) return;
-
-        if (currentIndex === -1) currentIndex = 0;
-
-        const box = boxes[currentIndex];
-        const player = allPlayers.find(p => p.box === box);
-
-        if (!player) return;
-
-        if (player.audio.paused) {
-            stopAllExcept(player.audio);
-            player.audio.play();
-            document.getElementById("playBtn").textContent = "⏸";
-        } else {
-            player.audio.pause();
-            document.getElementById("playBtn").textContent = "▶️";
-        }
-    }
-
-    function nextTrack() {
-        playIndex(currentIndex + 1);
-    }
-
-    function prevTrack() {
-        playIndex(currentIndex - 1);
-    }
-
-    function toggleLoop() {
-        loopEnabled = !loopEnabled;
-
-        const btn = document.getElementById("loopBtn");
-        btn.classList.toggle("active", loopEnabled);
-
-        allPlayers.forEach(p => p.audio.loop = loopEnabled);
-    }
 
     document.getElementById("playBtn").addEventListener("click", playPause);
     document.getElementById("nextBtn").addEventListener("click", nextTrack);
     document.getElementById("prevBtn").addEventListener("click", prevTrack);
     document.getElementById("loopBtn").addEventListener("click", toggleLoop);
 
+    // Carica colori dal CSS
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";
 
     loadAudio();
 
+    // Global Volume
     const volInput = document.getElementById("globalVolume");
     const volLabel = document.getElementById("volLabel");
     if (volInput) {
@@ -305,6 +339,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Global Speed
     const speedInput = document.getElementById("globalSpeed");
     const speedLabel = document.getElementById("speedLabel");
     if (speedInput) {
@@ -318,6 +353,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Cent buttons
     document.querySelectorAll(".centBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             const cent = parseInt(btn.dataset.cent);

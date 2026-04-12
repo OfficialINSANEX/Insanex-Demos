@@ -216,7 +216,7 @@ body {
 
 .SpeedControl {
     position: fixed;
-    top: 120px;
+    top: 90px;
     right: 20px;
     width: 200px;
     z-index: 9999;
@@ -309,7 +309,7 @@ body {
 
 .ControlBox {
     position: fixed;
-    top: 220px;
+    top: 188px;
     right: 20px;
     width: 200px;
     z-index: 9999;
