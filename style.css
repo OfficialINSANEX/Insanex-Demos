@@ -363,3 +363,16 @@ body {
     margin-top: -4px;
     color: #ccc;
 }
+
+.gold .viewCounter {
+    color: gold !important;
+    font-weight: bold;
+    text-shadow: 0 0 8px gold;
+}
+
+.gold .viewCounter::first-letter {
+    text-transform: uppercase;
+}
+.viewCounter::first-letter {
+    text-transform: uppercase;
+}
