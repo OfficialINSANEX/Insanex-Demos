@@ -372,8 +372,8 @@ async function loadAudio() {
                 <div class="DemoTitle">${baseName}</div>
 
                 <div class="ReactionTopRight">
-                    <span class="reactIcon" data-react="like">👍 <span class="reactCount" data-react="like">0</span></span>
                     <span class="reactIcon" data-react="dislike">👎 <span class="reactCount" data-react="dislike">0</span></span>
+                    <span class="reactIcon" data-react="like">👍 <span class="reactCount" data-react="like">0</span></span>
                     <span class="reactIcon" data-react="fire">🔥 <span class="reactCount" data-react="fire">0</span></span>
                 </div>
             </div>
