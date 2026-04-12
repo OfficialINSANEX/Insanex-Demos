@@ -351,3 +351,15 @@ body {
 #insanexPopupBtn:hover {
     background: #ffea7a;
 }
+
+/* ===============================
+   vIEW COUNTER
+=============================== */
+
+
+.viewCounter {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: -4px;
+    color: #ccc;
+}

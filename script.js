@@ -6,13 +6,15 @@ let globalVolume = 0.1;
 let globalSpeed = 1;
 let waveformObserver = null;
 
-// Colori presi dal CSS (dopo che il DOM è pronto)
 let wavePlayedColor = "#ffaa55";
 let waveUnplayedColor = "#ff5500";
 
-// Variabili di stato globali per i controlli
 let currentIndex = -1;
 let loopEnabled = false;
+
+const VIEW_API = "https://viewscounter.phonckmusic.workers.dev";
+
+
 
 // ===============================
 //  STOP ALL EXCEPT ONE
@@ -49,9 +51,30 @@ function getPlayableBoxes() {
 }
 
 // ===============================
+//  LOAD INITIAL VIEWS
+// ===============================
+async function loadInitialViews(box) {
+    const fileName = box.dataset.file;
+
+    try {
+        const res = await fetch(`${VIEW_API}/getView?track=${encodeURIComponent(fileName)}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const viewEl = box.querySelector(".viewCounter");
+        if (viewEl) {
+            viewEl.textContent = `views: ${data.views || 0}`;
+        }
+    } catch (err) {
+        console.warn("Impossibile caricare views per:", fileName);
+    }
+}
+
+// ===============================
 //  CREATE WAVEFORM
 // ===============================
-async function createWaveformForVisible(box, fileName) {
+async function createWaveformForVisible(box) {
+    const fileName = box.dataset.file;
     const canvas = box.querySelector(".WaveCanvas");
     if (!canvas) return;
 
@@ -95,7 +118,6 @@ async function createWaveformForVisible(box, fileName) {
         const middle = canvas.height / 2;
         const barWidth = canvas.width / samples;
 
-        // WAVEFORM CORRETTA (gold solo per tracce gold)
         function drawWaveform(progress = 0) {
             ctx.fillStyle = "#050510";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -125,6 +147,15 @@ async function createWaveformForVisible(box, fileName) {
             stopAllExcept(audio);
             box.classList.add("selected");
             setCurrentTrack(box);
+
+            // 🔥 Incrementa views usando la chiave corretta
+            fetch(`${VIEW_API}/addView?track=${encodeURIComponent(box.dataset.file)}`)
+                .then(r => r.json())
+                .then(data => {
+                    const viewEl = box.querySelector(".viewCounter");
+                    if (viewEl) viewEl.textContent = `views: ${data.views}`;
+                })
+                .catch(err => console.warn("Errore aggiornamento views:", err));
         });
 
         audio.addEventListener("pause", () => {
@@ -205,10 +236,7 @@ async function loadAudio() {
 
         const box = document.createElement("div");
         box.className = "DemoBox";
-
-        if (item.gold) {
-            box.classList.add("gold");
-        }
+        if (item.gold) box.classList.add("gold");
 
         if (!exists) {
             box.innerHTML = `
@@ -223,6 +251,7 @@ async function loadAudio() {
 
         box.innerHTML = `
             <div class="DemoTitle">${baseName}</div>
+            <div class="viewCounter">views: 0</div>
             <canvas class="WaveCanvas"></canvas>
         `;
         box.dataset.file = item.file;
@@ -230,13 +259,16 @@ async function loadAudio() {
         container.appendChild(box);
     }
 
+    // Osservatore per caricare waveform + views iniziali
     waveformObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const box = entry.target;
                 if (!box.dataset.waveformLoaded && box.dataset.file) {
                     box.dataset.waveformLoaded = "true";
-                    createWaveformForVisible(box, box.dataset.file);
+
+                    createWaveformForVisible(box);
+                    loadInitialViews(box); // ← chiave corretta
                 }
             }
         });
@@ -250,9 +282,8 @@ async function loadAudio() {
     });
 }
 
-// ===============================
-//  PLAY INDEX
-// ===============================
+
+// ====================== PLAYER CONTROLS ======================
 function playIndex(i) {
     const boxes = getPlayableBoxes();
     if (boxes.length === 0) return;
@@ -267,7 +298,6 @@ function playIndex(i) {
     if (!player) return;
 
     setCurrentTrack(box);
-
     stopAllExcept(player.audio);
     player.audio.currentTime = 0;
     player.audio.play();
@@ -306,10 +336,8 @@ function prevTrack() {
 
 function toggleLoop() {
     loopEnabled = !loopEnabled;
-
     const btn = document.getElementById("loopBtn");
     if (btn) btn.classList.toggle("active", loopEnabled);
-
     allPlayers.forEach(p => p.audio.loop = loopEnabled);
 }
 
@@ -329,7 +357,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     loadAudio();
 
-    // Global Volume
+    // Volume
     const volInput = document.getElementById("globalVolume");
     const volLabel = document.getElementById("volLabel");
     if (volInput) {
@@ -343,7 +371,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Global Speed
+    // Speed
     const speedInput = document.getElementById("globalSpeed");
     const speedLabel = document.getElementById("speedLabel");
     if (speedInput) {
@@ -366,18 +394,21 @@ window.addEventListener("DOMContentLoaded", () => {
             globalSpeed = rate;
             if (speedInput) speedInput.value = rate;
             if (speedLabel) speedLabel.textContent = Math.round(rate * 100) + "%";
-
             allPlayers.forEach(p => p.audio.playbackRate = rate);
         });
     });
 });
 
-
+// ===============================
+//  POPUP
+// ===============================
 window.addEventListener("DOMContentLoaded", () => {
     const popup = document.getElementById("insanexPopupOverlay");
     const btn = document.getElementById("insanexPopupBtn");
 
-    btn.addEventListener("click", () => {
-        popup.style.display = "none";
-    });
+    if (popup && btn) {
+        btn.addEventListener("click", () => {
+            popup.style.display = "none";
+        });
+    }
 });
