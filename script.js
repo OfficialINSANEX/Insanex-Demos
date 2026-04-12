@@ -13,7 +13,7 @@ let currentIndex = -1;
 let loopEnabled = false;
 
 const VIEW_API = "https://viewscounter.phonckmusic.workers.dev";
-
+const REACT_API = VIEW_API + "/react";
 
 
 // ===============================
@@ -30,6 +30,7 @@ function stopAllExcept(currentAudio) {
     });
 }
 
+
 // ===============================
 //  SET CURRENT TRACK
 // ===============================
@@ -42,19 +43,21 @@ function setCurrentTrack(box) {
     });
 }
 
+
 // ===============================
 //  GET PLAYABLE BOXES
 // ===============================
 function getPlayableBoxes() {
-    return [...document.querySelectorAll(".DemoBox")]
-        .filter(b => b.dataset.file);
+    return [...document.querySelectorAll(".DemoBox")].filter(b => b.dataset.file);
 }
+
 
 // ===============================
 //  LOAD INITIAL VIEWS
 // ===============================
 async function loadInitialViews(box) {
     const fileName = box.dataset.file;
+    if (!fileName) return;
 
     try {
         const res = await fetch(`${VIEW_API}/getView?track=${encodeURIComponent(fileName)}`);
@@ -66,9 +69,119 @@ async function loadInitialViews(box) {
             viewEl.textContent = `views: ${data.views || 0}`;
         }
     } catch (err) {
-        console.warn("Impossibile caricare views per:", fileName);
+        console.warn("Impossibile caricare views per:", fileName, err);
     }
 }
+
+
+// ===============================
+//  REACTIONS — LOCAL STORAGE
+// ===============================
+function getLocalReaction(track) {
+    return localStorage.getItem("reaction_" + track) || null;
+}
+
+function setLocalReaction(track, reaction) {
+    if (!reaction) localStorage.removeItem("reaction_" + track);
+    else localStorage.setItem("reaction_" + track, reaction);
+}
+
+
+// ===============================
+//  REACTIONS — UI UPDATE
+// ===============================
+function updateReactionUI(box, reaction) {
+    box.querySelectorAll(".reactIcon").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.react === reaction);
+    });
+}
+
+
+// ===============================
+//  REACTIONS — LOAD FROM SERVER
+// ===============================
+async function loadReactions(box) {
+    const track = box.dataset.file;
+    if (!track) return;
+
+    try {
+        const res = await fetch(`${REACT_API}?track=${encodeURIComponent(track)}`);
+        if (!res.ok) {
+            console.warn("Errore HTTP reazioni per:", track, res.status);
+            return;
+        }
+
+        const data = await res.json(); // {like, fire, dislike}
+
+        const likeEl = box.querySelector('.reactCount[data-react="like"]');
+        const fireEl = box.querySelector('.reactCount[data-react="fire"]');
+        const dislikeEl = box.querySelector('.reactCount[data-react="dislike"]');
+
+        if (likeEl) likeEl.textContent = data.like || 0;
+        if (fireEl) fireEl.textContent = data.fire || 0;
+        if (dislikeEl) dislikeEl.textContent = data.dislike || 0;
+
+        const local = getLocalReaction(track);
+        updateReactionUI(box, local);
+
+    } catch (err) {
+        console.warn("Errore caricamento reazioni per:", track, err);
+    }
+}
+
+
+// ===============================
+//  REACTIONS — SEND TO SERVER
+// ===============================
+async function sendReaction(track, reaction) {
+    try {
+        const res = await fetch(REACT_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ track, reaction })
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        // Aggiorna subito i numeri nella UI
+        const box = document.querySelector(`.DemoBox[data-file="${track}"]`);
+        if (box) {
+            box.querySelector('.reactCount[data-react="like"]').textContent = data.like;
+            box.querySelector('.reactCount[data-react="fire"]').textContent = data.fire;
+            box.querySelector('.reactCount[data-react="dislike"]').textContent = data.dislike;
+        }
+
+    } catch (err) {
+        console.warn("Errore invio reazione:", err);
+    }
+}
+
+
+
+// ===============================
+//  REACTIONS — ENABLE FOR BOX
+// ===============================
+function enableReactionsForBox(box) {
+    const track = box.dataset.file;
+    if (!track) return;
+
+    box.querySelectorAll(".reactIcon").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const chosen = btn.dataset.react;
+            const current = getLocalReaction(track);
+
+            let newReaction = chosen;
+            if (current === chosen) newReaction = null; // toggle off
+
+            setLocalReaction(track, newReaction);
+            updateReactionUI(box, newReaction);
+            sendReaction(track, newReaction);
+        });
+    });
+}
+
 
 // ===============================
 //  CREATE WAVEFORM
@@ -76,7 +189,7 @@ async function loadInitialViews(box) {
 async function createWaveformForVisible(box) {
     const fileName = box.dataset.file;
     const canvas = box.querySelector(".WaveCanvas");
-    if (!canvas) return;
+    if (!canvas || !fileName) return;
 
     const ctx = canvas.getContext("2d", { alpha: true });
     const url = "audio/" + fileName;
@@ -87,8 +200,8 @@ async function createWaveformForVisible(box) {
     audio.preload = "metadata";
 
     audio.preservesPitch = false;
-    if ('mozPreservesPitch' in audio) audio.mozPreservesPitch = false;
-    if ('webkitPreservesPitch' in audio) audio.webkitPreservesPitch = false;
+    if ("mozPreservesPitch" in audio) audio.mozPreservesPitch = false;
+    if ("webkitPreservesPitch" in audio) audio.webkitPreservesPitch = false;
 
     try {
         const response = await fetch(url);
@@ -136,26 +249,15 @@ async function createWaveformForVisible(box) {
             });
         }
 
-        const player = { audio, draw: drawWaveform, box };
+        const player = { audio, draw: drawWaveform, box, hasCountedView: false };
         allPlayers.push(player);
 
         drawWaveform(0);
-
-        // ====================== EVENTI ======================
 
         audio.addEventListener("play", () => {
             stopAllExcept(audio);
             box.classList.add("selected");
             setCurrentTrack(box);
-
-            // 🔥 Incrementa views usando la chiave corretta
-            fetch(`${VIEW_API}/addView?track=${encodeURIComponent(box.dataset.file)}`)
-                .then(r => r.json())
-                .then(data => {
-                    const viewEl = box.querySelector(".viewCounter");
-                    if (viewEl) viewEl.textContent = `views: ${data.views}`;
-                })
-                .catch(err => console.warn("Errore aggiornamento views:", err));
         });
 
         audio.addEventListener("pause", () => {
@@ -167,6 +269,8 @@ async function createWaveformForVisible(box) {
         audio.addEventListener("ended", () => {
             box.classList.remove("selected");
             drawWaveform(0);
+
+            player.hasCountedView = true;
 
             if (loopEnabled) {
                 audio.currentTime = 0;
@@ -198,6 +302,18 @@ async function createWaveformForVisible(box) {
         audio.addEventListener("timeupdate", () => {
             const progress = audio.currentTime / audio.duration || 0;
             drawWaveform(progress);
+
+            if (!player.hasCountedView && audio.currentTime > 2.5) {
+                player.hasCountedView = true;
+
+                fetch(`${VIEW_API}/addView?track=${encodeURIComponent(box.dataset.file)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const viewEl = box.querySelector(".viewCounter");
+                        if (viewEl) viewEl.textContent = `views: ${data.views}`;
+                    })
+                    .catch(err => console.warn("Errore aggiornamento views:", err));
+            }
         });
 
     } catch (err) {
@@ -206,6 +322,7 @@ async function createWaveformForVisible(box) {
         ctx.fillRect(0, 0, canvas.width || 600, canvas.height || 150);
     }
 }
+
 
 // ===============================
 //  LOAD AUDIO LIST
@@ -251,16 +368,28 @@ async function loadAudio() {
         }
 
         box.innerHTML = `
-            <div class="DemoTitle">${baseName}</div>
+            <div class="DemoHeader">
+                <div class="DemoTitle">${baseName}</div>
+
+                <div class="ReactionTopRight">
+                    <span class="reactIcon" data-react="like">👍 <span class="reactCount" data-react="like">0</span></span>
+                    <span class="reactIcon" data-react="dislike">👎 <span class="reactCount" data-react="dislike">0</span></span>
+                    <span class="reactIcon" data-react="fire">🔥 <span class="reactCount" data-react="fire">0</span></span>
+                </div>
+            </div>
+
             <div class="viewCounter">views: 0</div>
             <canvas class="WaveCanvas"></canvas>
         `;
+
         box.dataset.file = item.file;
 
         container.appendChild(box);
+
+        enableReactionsForBox(box);
+        loadReactions(box);
     }
 
-    // Osservatore per caricare waveform + views iniziali
     waveformObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -269,7 +398,7 @@ async function loadAudio() {
                     box.dataset.waveformLoaded = "true";
 
                     createWaveformForVisible(box);
-                    loadInitialViews(box); // ← chiave corretta
+                    loadInitialViews(box);
                 }
             }
         });
@@ -342,20 +471,28 @@ function toggleLoop() {
     allPlayers.forEach(p => p.audio.loop = loopEnabled);
 }
 
+
 // ===============================
 //  DOM CONTENT LOADED
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
+    // Controls
+    const playBtn = document.getElementById("playBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const loopBtn = document.getElementById("loopBtn");
 
-    document.getElementById("playBtn").addEventListener("click", playPause);
-    document.getElementById("nextBtn").addEventListener("click", nextTrack);
-    document.getElementById("prevBtn").addEventListener("click", prevTrack);
-    document.getElementById("loopBtn").addEventListener("click", toggleLoop);
+    if (playBtn) playBtn.addEventListener("click", playPause);
+    if (nextBtn) nextBtn.addEventListener("click", nextTrack);
+    if (prevBtn) prevBtn.addEventListener("click", prevTrack);
+    if (loopBtn) loopBtn.addEventListener("click", toggleLoop);
 
+    // Wave colors
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";
 
+    // Load audio list
     loadAudio();
 
     // Volume
@@ -398,19 +535,13 @@ window.addEventListener("DOMContentLoaded", () => {
             allPlayers.forEach(p => p.audio.playbackRate = rate);
         });
     });
-});
 
-// ===============================
-//  POPUP
-// ===============================
-window.addEventListener("DOMContentLoaded", () => {
+    // Popup
     const popup = document.getElementById("insanexPopupOverlay");
-    const btn = document.getElementById("insanexPopupBtn");
-
-    if (popup && btn) {
-        btn.addEventListener("click", () => {
+    const popupBtn = document.getElementById("insanexPopupBtn");
+    if (popup && popupBtn) {
+        popupBtn.addEventListener("click", () => {
             popup.style.display = "none";
         });
     }
 });
-

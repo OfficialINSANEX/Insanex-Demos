@@ -370,7 +370,7 @@ body {
 }
 
 /* ===============================
-   vIEW COUNTER
+   VIEW COUNTER
 =============================== */
 
 
@@ -415,4 +415,51 @@ body {
     font-size: 14px;
     opacity: 1;
     font-weight: 500;
+}
+
+
+
+/* ===============================
+HEADER DELLA DEMOBOX (TITOLO + REAZIONI) 
+=============================== */
+.DemoHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* REACTION BAR IN ALTO A DESTRA */
+.ReactionTopRight {
+    display: flex;
+    gap: 10px;
+}
+
+.reactIcon {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+
+    background: var(--button-bg);
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.15s;
+    border: 1px solid transparent;
+}
+
+.reactIcon:hover {
+    background: var(--button-bg-hover);
+}
+
+.reactIcon.active {
+    color: #00ff88;
+    border-color: #00ff88;
+    transform: scale(1.05);
+}
+
+.reactCount {
+    font-size: 12px;
+    color: white !important;
+    opacity: 0.85;
 }

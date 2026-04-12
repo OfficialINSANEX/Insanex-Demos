@@ -7,11 +7,13 @@
 </head>
 <body>
 
+    <!-- ===============================
+         POPUP DI AVVISO
+    =============================== -->
     <div id="insanexPopupOverlay">
         <div id="insanexPopupBox">
             <p>
                 All audio materials on this page are the exclusive property of INSANEX.<br><br>
-
                 Unauthorized sharing, distribution, or reproduction is strictly prohibited.<br><br>
                 The reduced audio quality is intentional and implemented for security purposes.
             </p>
@@ -20,21 +22,27 @@
     </div>
 
 
-
-    
+    <!-- ===============================
+         TITOLO
+    =============================== -->
     <div class="Title">
         <h1>INSANEX DEMOS</h1>
     </div>
 
-    <!-- COLONNA RESPONSIVE A DESTRA -->
+
+    <!-- ===============================
+         COLONNA DESTRA
+    =============================== -->
     <div class="RightColumn">
 
-        <div class="VolumeControl">
+        <!-- VOLUME -->
+        <div class="VolumeControl ControlBox">
             <label>Volume <span id="volLabel">10%</span></label>
             <input id="globalVolume" type="range" min="0" max="1" step="0.01" value="0.1">
         </div>
 
-        <div class="SpeedControl">
+        <!-- SPEED -->
+        <div class="SpeedControl ControlBox">
             <label>Speed <span id="speedLabel">100%</span></label>
             <input id="globalSpeed" type="range" min="0.5" max="2" step="0.01" value="1">
 
@@ -47,6 +55,7 @@
             </div>
         </div>
 
+        <!-- PLAYER CONTROLS -->
         <div class="ControlBox">
             <div class="ControlTitle">Controls</div>
 
@@ -57,22 +66,30 @@
                 <button id="loopBtn" class="ctrlIcon">🔁</button>
             </div>
         </div>
-
     </div>
-    <!-- FINE COLONNA -->
+    <!-- FINE RIGHTCOLUMN -->
 
 
+    <!-- ===============================
+         CONTENITORE DEMOS
+    =============================== -->
     <div class="Content" id="demos-container"></div>
 
+
+    <!-- ===============================
+         NOTICE
+    =============================== -->
     <div class="InsanexNotice">
         All the songs are reserved exclusively to INSANEX.<br>
         Publishing without consent is prohibited.
     </div>
 
-    
-
     <div class="Informations"></div>
 
+
+    <!-- ===============================
+         SCRIPT
+    =============================== -->
     <script src="script.js"></script>
 
 </body>
