@@ -239,11 +239,12 @@ async function loadAudio() {
         if (item.gold) box.classList.add("gold");
 
         if (!exists) {
+            box.classList.add("taken");
             box.innerHTML = `
                 <div class="DemoTitle">${baseName} 
-                    <span style="color:#ff4444; font-weight:bold;">(taken)</span>
+                    <span class="takenLabel">(taken)</span>
                 </div>
-                <div style="opacity:0.4; font-size:14px;">This demo is taken</div>
+                <div class="takenSub">This demo is taken</div>
             `;
             container.appendChild(box);
             continue;
@@ -412,3 +413,4 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+

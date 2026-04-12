@@ -24,16 +24,27 @@
     --box-glow-color-1: #9d4bff;
     --box-glow-color-2: #024eff;
 
-    --box-selected-glow: 0 0 8px #9d4bff, 0 0 30px #ffffff;
+    --box-selected-glow: 0 0 8px #5cc0fa, 0 0 30px #ffffff;
+
+    --title-normal: #ffffff;
+    --title-gold: gold;
+    --title-taken: #ff6666;
+
 }
 
 /* BASE */
 body {
-    background: var(--bg-color);
-    margin: 0;
-    font-family: Arial, sans-serif;
-    color: var(--text-color);
+    background: #000 url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+    background-size: 600px;
+    overflow-x: hidden;
 }
+
+.blur-on-scroll {
+    transition: filter 0.25s ease;
+}
+
+
+
 
 /* TITOLO */
 .Title {
@@ -71,6 +82,12 @@ body {
     position: relative;
     transition: box-shadow 0.6s ease, border-color 0.6s ease;
 }
+
+.DemoTitle {
+    color: var(--title-normal);
+    font-weight: bold;
+}
+
 
 /* SELEZIONE */
 .DemoBox.selected {
@@ -375,4 +392,27 @@ body {
 }
 .viewCounter::first-letter {
     text-transform: uppercase;
+}
+
+
+/* ===============================
+   TAKEN STYLE
+=============================== */
+
+.DemoBox.taken {
+    background: #1a0000;
+    border: 1px solid #ff4444;
+    opacity: 0.7;
+}
+
+.DemoBox.taken .DemoTitle,
+.DemoBox.taken .takenLabel {
+    color: #ffffff;
+}
+
+.DemoBox.taken .takenSub {
+    color: #e9d4d4;
+    font-size: 14px;
+    opacity: 1;
+    font-weight: 500;
 }
