@@ -109,6 +109,7 @@ async function createWaveformForVisible(box, fileName) {
             drawWaveform(0);
         });
 
+        // Click sul canvas → seek + play
         canvas.addEventListener("click", (e) => {
             const rect = canvas.getBoundingClientRect();
             const scale = canvas.width / rect.width;
@@ -123,14 +124,7 @@ async function createWaveformForVisible(box, fileName) {
             audio.play();
         });
 
-        canvas.addEventListener("dblclick", () => {
-            if (audio.paused) {
-                stopAllExcept(audio);
-                audio.play();
-            } else {
-                audio.pause();
-            }
-        });
+        // ❌ RIMOSSO: doppio click per play/stop
 
         audio.addEventListener("timeupdate", () => {
             const progress = audio.currentTime / audio.duration || 0;
@@ -162,10 +156,8 @@ async function loadAudio() {
 
         const filePath = "audio/" + item.file;
 
-        // Nome senza estensione
         const baseName = item.file.replace(/\.[^/.]+$/, "");
 
-        // Controllo esistenza file
         let exists = true;
         try {
             const check = await fetch(filePath, { method: "HEAD" });
@@ -227,7 +219,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     function getPlayableBoxes() {
         return [...document.querySelectorAll(".DemoBox")]
-            .filter(b => b.dataset.file); // solo quelli NON taken
+            .filter(b => b.dataset.file);
     }
 
     function playIndex(i) {
@@ -281,23 +273,18 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     function toggleLoop() {
-    loopEnabled = !loopEnabled;
+        loopEnabled = !loopEnabled;
 
-    const btn = document.getElementById("loopBtn");
-    btn.classList.toggle("active", loopEnabled);
+        const btn = document.getElementById("loopBtn");
+        btn.classList.toggle("active", loopEnabled);
 
-    // Applica il loop a tutti i player
-    allPlayers.forEach(p => p.audio.loop = loopEnabled);
+        allPlayers.forEach(p => p.audio.loop = loopEnabled);
     }
 
     document.getElementById("playBtn").addEventListener("click", playPause);
     document.getElementById("nextBtn").addEventListener("click", nextTrack);
     document.getElementById("prevBtn").addEventListener("click", prevTrack);
     document.getElementById("loopBtn").addEventListener("click", toggleLoop);
-
-
-
-
 
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
