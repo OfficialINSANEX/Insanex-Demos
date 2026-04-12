@@ -11,47 +11,51 @@
         <h1>INSANEX DEMOS</h1>
     </div>
 
-    <div class="VolumeControl">
-        <label>Volume <span id="volLabel">10%</span></label>
-        <input id="globalVolume" type="range" min="0" max="1" step="0.01" value="0.1">
+    <!-- COLONNA RESPONSIVE A DESTRA -->
+    <div class="RightColumn">
+
+        <div class="VolumeControl">
+            <label>Volume <span id="volLabel">10%</span></label>
+            <input id="globalVolume" type="range" min="0" max="1" step="0.01" value="0.1">
+        </div>
+
+        <div class="SpeedControl">
+            <label>Speed <span id="speedLabel">100%</span></label>
+            <input id="globalSpeed" type="range" min="0.5" max="2" step="0.01" value="1">
+
+            <div class="SpeedButtons">
+                <button class="centBtn" data-cent="-400">-4</button>
+                <button class="centBtn" data-cent="-200">-2</button>
+                <button class="centBtn" data-cent="0">0</button>
+                <button class="centBtn" data-cent="200">+2</button>
+                <button class="centBtn" data-cent="400">+4</button>
+            </div>
+        </div>
+
+        <div class="ControlBox">
+            <div class="ControlTitle">Controls</div>
+
+            <div class="ControlButtons">
+                <button id="prevBtn" class="ctrlIcon">⏮</button>
+                <button id="playBtn" class="ctrlIcon">▶️</button>
+                <button id="nextBtn" class="ctrlIcon">⏭</button>
+                <button id="loopBtn" class="ctrlIcon">🔁</button>
+            </div>
+        </div>
+
     </div>
+    <!-- FINE COLONNA -->
 
     <div class="Content" id="demos-container"></div>
-
-    <div class="SpeedControl">
-        <label>Speed <span id="speedLabel">100%</span></label>
-        <input id="globalSpeed" type="range" min="0.5" max="2" step="0.01" value="1">
-
-        <div class="SpeedButtons">
-            <button class="centBtn" data-cent="-400">-4</button>
-            <button class="centBtn" data-cent="-200">-2</button>
-            <button class="centBtn" data-cent="0">0</button>
-            <button class="centBtn" data-cent="200">+2</button>
-            <button class="centBtn" data-cent="400">+4</button>
-        </div>
-    </div>
 
     <div class="InsanexNotice">
         All the songs are reserved exclusively to INSANEX.<br>
         Publishing without consent is prohibited.
     </div>
 
-    <div class="ControlBox">
-        <div class="ControlTitle">Controls</div>
-
-        <div class="ControlButtons">
-            <button id="prevBtn" class="ctrlIcon">⏮</button>
-            <button id="playBtn" class="ctrlIcon">▶️</button>
-            <button id="nextBtn" class="ctrlIcon">⏭</button>
-            <button id="loopBtn" class="ctrlIcon">🔁</button>
-        </div>
-    </div>
-
+    <div class="Informations"></div>
 
     <script src="script.js"></script>
 
-    <div class="Informations">
-        
-    </div>
 </body>
 </html>
