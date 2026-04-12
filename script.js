@@ -97,7 +97,7 @@ async function createWaveformForVisible(box) {
             .decodeAudioData(arrayBuffer);
 
         const rawData = audioBuffer.getChannelData(0);
-        const samples = 150;
+        const samples = 200;
         const blockSize = Math.floor(rawData.length / samples);
         const filteredData = [];
 
