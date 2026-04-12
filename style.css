@@ -1,0 +1,304 @@
+:root {
+    /* Tema cyberpunk */
+    --bg-color: #050510;
+    --text-color: #ffffff;
+
+    --title-color: #ffffff;
+    --title-border: #ffffff;
+
+    --box-bg: #0b0b18;
+    --box-border: #26264a;
+
+    --wave-played: #888;
+    --wave-unplayed: #444;
+
+    --knob-color: #9d4bff;
+    --knob-color-hover: #c38dff;
+
+    --button-bg: #11152a;
+    --button-bg-hover: #1a2140;
+    --button-text: #e0e0ff;
+
+    --notice-color: #ffffff;
+    --information-color: #ff3b3b;
+
+    /* Glow bordo selezionato */
+    --box-glow-color-1: #9d4bff;
+    --box-glow-color-2: #024eff;
+
+    --box-selected-glow: 0 0 8px #9d4bff, 0 0 30px #ffffff;
+}
+
+/* ===============================
+   BASE
+=============================== */
+
+body {
+    background: var(--bg-color);
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: var(--text-color);
+}
+
+/* ===============================
+   TITOLO
+=============================== */
+
+.Title {
+    display: flex;
+    justify-content: center;
+    padding: 20px 210px;
+    margin: 20px auto;
+    width: fit-content;
+    font-size: 28px;
+    font-weight: bold;
+    border: 2px solid var(--title-border);
+    border-radius: 20px;
+    color: var(--title-color);
+}
+
+
+/* ===============================
+   CONTENUTO
+=============================== */
+
+.Content {
+    max-width: 900px;
+    margin: 0 auto 60px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* ===============================
+   BOX DEMO
+=============================== */
+
+.DemoBox {
+    background: var(--box-bg);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--box-border);
+    position: relative;
+    transition: box-shadow 0.6s ease, border-color 0.6s ease;
+}
+
+/* ===============================
+   BOX SELEZIONATO (GLOW RESPIRO)
+=============================== */
+
+.DemoBox.selected {
+    border: 2px solid #9d4bff;
+    box-shadow: var(--box-selected-glow);
+}
+
+
+.DemoBox.unselecting {
+    border: 2px solid transparent;
+    animation: cyberFadeOut 0.6s ease forwards;
+}
+
+.DemoBox.unselecting::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(
+        120deg,
+        var(--box-glow-color-1),
+        var(--box-glow-color-2),
+        var(--box-glow-color-1)
+    );
+    background-size: 300% 300%;
+    animation: gradientFlow 4s linear infinite, cyberFadeOut 0.6s ease forwards;
+    pointer-events: none;
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+
+
+/* Glow che respira */
+@keyframes cyberBreath {
+    0% {
+        box-shadow: 0 0 6px var(--box-glow-color-1), 0 0 12px var(--box-glow-color-2);
+    }
+    50% {
+        box-shadow: 0 0 18px var(--box-glow-color-1), 0 0 32px var(--box-glow-color-2);
+    }
+    100% {
+        box-shadow: 0 0 6px var(--box-glow-color-1), 0 0 12px var(--box-glow-color-2);
+    }
+}
+
+/* Gradiente che scorre */
+@keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
+
+/* Fade out quando si deseleziona */
+@keyframes cyberFadeOut {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 18px var(--box-glow-color-1), 0 0 32px var(--box-glow-color-2);
+    }
+    100% {
+        opacity: 0;
+        box-shadow: 0 0 0px transparent;
+    }
+}
+
+
+/* ===============================
+   WAVEFORM
+=============================== */
+
+.WaveCanvas {
+    width: 100%;
+    height: 150px;
+    background: #050510;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* ===============================
+   VOLUME
+=============================== */
+
+.VolumeControl {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    z-index: 9999;
+    background: #050510;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--box-border);
+    text-align: center;
+}
+
+.VolumeControl label {
+    color: var(--knob-color);
+    font-size: 14px;
+}
+
+.VolumeControl span {
+    font-size: 12px;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.VolumeControl input {
+    width: 100%;
+    margin-top: 8px;
+    accent-color: var(--knob-color);
+}
+
+/* ===============================
+   SPEED
+=============================== */
+
+.SpeedControl {
+    position: fixed;
+    top: 120px;
+    right: 20px;
+    width: 200px;
+    z-index: 9999;
+    background: #050510;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--box-border);
+    text-align: center;
+}
+
+.SpeedControl label {
+    color: var(--knob-color);
+    font-size: 14px;
+}
+
+.SpeedControl span {
+    font-size: 12px;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.SpeedControl input {
+    width: 100%;
+    margin-top: 8px;
+    accent-color: var(--knob-color);
+}
+
+.SpeedButtons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    gap: 4px;
+}
+
+.SpeedButtons .centBtn {
+    flex: 1;
+    padding: 4px 0;
+    border-radius: 6px;
+    border: none;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.SpeedButtons .centBtn:hover {
+    background: var(--button-bg-hover);
+}
+
+/* ===============================
+   NOTICE
+=============================== */
+
+.InsanexNotice {
+    position: fixed;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--notice-color);
+    opacity: 0.45;
+    pointer-events: none;
+    text-align: center;
+    width: 80%;
+}
+
+/* ===============================
+   INFORMAZIONI
+=============================== */
+
+.Informations {
+    position: fixed;
+    top: 77%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--information-color);
+    opacity: 0.45;
+    pointer-events: none;
+    text-align: center;
+    width: 80%;
+}
