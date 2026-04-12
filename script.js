@@ -221,6 +221,84 @@ async function loadAudio() {
 //  GLOBAL CONTROLS + COLORI CSS
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
+
+    let currentIndex = -1;
+    let loopEnabled = false;
+
+    function getPlayableBoxes() {
+        return [...document.querySelectorAll(".DemoBox")]
+            .filter(b => b.dataset.file); // solo quelli NON taken
+    }
+
+    function playIndex(i) {
+        const boxes = getPlayableBoxes();
+        if (boxes.length === 0) return;
+
+        if (i < 0) i = boxes.length - 1;
+        if (i >= boxes.length) i = 0;
+
+        currentIndex = i;
+
+        const box = boxes[i];
+        const player = allPlayers.find(p => p.box === box);
+
+        if (!player) return;
+
+        stopAllExcept(player.audio);
+        player.audio.currentTime = 0;
+        player.audio.play();
+
+        document.getElementById("playBtn").textContent = "⏸";
+    }
+
+    function playPause() {
+        const boxes = getPlayableBoxes();
+        if (boxes.length === 0) return;
+
+        if (currentIndex === -1) currentIndex = 0;
+
+        const box = boxes[currentIndex];
+        const player = allPlayers.find(p => p.box === box);
+
+        if (!player) return;
+
+        if (player.audio.paused) {
+            stopAllExcept(player.audio);
+            player.audio.play();
+            document.getElementById("playBtn").textContent = "⏸";
+        } else {
+            player.audio.pause();
+            document.getElementById("playBtn").textContent = "▶️";
+        }
+    }
+
+    function nextTrack() {
+        playIndex(currentIndex + 1);
+    }
+
+    function prevTrack() {
+        playIndex(currentIndex - 1);
+    }
+
+    function toggleLoop() {
+    loopEnabled = !loopEnabled;
+
+    const btn = document.getElementById("loopBtn");
+    btn.classList.toggle("active", loopEnabled);
+
+    // Applica il loop a tutti i player
+    allPlayers.forEach(p => p.audio.loop = loopEnabled);
+    }
+
+    document.getElementById("playBtn").addEventListener("click", playPause);
+    document.getElementById("nextBtn").addEventListener("click", nextTrack);
+    document.getElementById("prevBtn").addEventListener("click", prevTrack);
+    document.getElementById("loopBtn").addEventListener("click", toggleLoop);
+
+
+
+
+
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";
