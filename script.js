@@ -371,3 +371,13 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+
+window.addEventListener("DOMContentLoaded", () => {
+    const popup = document.getElementById("insanexPopupOverlay");
+    const btn = document.getElementById("insanexPopupBtn");
+
+    btn.addEventListener("click", () => {
+        popup.style.display = "none";
+    });
+});

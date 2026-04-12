@@ -308,3 +308,46 @@ body {
     border: 1px solid rgba(255,215,0,0.4);
 }
 
+/* ===============================
+   POP UP OVERLAY
+=============================== */
+
+#insanexPopupOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+}
+
+#insanexPopupBox {
+    background: #0b0b18;
+    padding: 30px 40px;
+    border-radius: 14px;
+    border: 2px solid gold;
+    box-shadow: 0 0 25px rgba(255,215,0,0.5);
+    max-width: 420px;
+    text-align: center;
+    color: gold;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+#insanexPopupBtn {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: gold;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#insanexPopupBtn:hover {
+    background: #ffea7a;
+}
