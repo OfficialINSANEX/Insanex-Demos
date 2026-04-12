@@ -39,7 +39,6 @@ async function createWaveformForVisible(box, fileName) {
     audio.playbackRate = globalSpeed;
     audio.preload = "metadata";
 
-    // Disattiva pitch correction (per cambiare velocità senza preservare il tono)
     audio.preservesPitch = false;
     if ('mozPreservesPitch' in audio) audio.mozPreservesPitch = false;
     if ('webkitPreservesPitch' in audio) audio.webkitPreservesPitch = false;
@@ -51,7 +50,7 @@ async function createWaveformForVisible(box, fileName) {
             .decodeAudioData(arrayBuffer);
 
         const rawData = audioBuffer.getChannelData(0);
-        const samples = 150;                    // miglior compromesso qualità/performance
+        const samples = 150;
         const blockSize = Math.floor(rawData.length / samples);
         const filteredData = [];
 
@@ -92,7 +91,7 @@ async function createWaveformForVisible(box, fileName) {
 
         drawWaveform(0);
 
-        // ====================== EVENTI SEMPLIFICATI ======================
+        // ====================== EVENTI ======================
 
         audio.addEventListener("play", () => {
             stopAllExcept(audio);
@@ -110,7 +109,6 @@ async function createWaveformForVisible(box, fileName) {
             drawWaveform(0);
         });
 
-        // Click sul canvas → seek + play
         canvas.addEventListener("click", (e) => {
             const rect = canvas.getBoundingClientRect();
             const scale = canvas.width / rect.width;
@@ -125,7 +123,6 @@ async function createWaveformForVisible(box, fileName) {
             audio.play();
         });
 
-        // Double click → toggle
         canvas.addEventListener("dblclick", () => {
             if (audio.paused) {
                 stopAllExcept(audio);
@@ -148,7 +145,7 @@ async function createWaveformForVisible(box, fileName) {
 }
 
 // ===============================
-//  LOAD AUDIO LIST + LAZY LOADING + TAKEN
+//  LOAD AUDIO LIST + TAKEN
 // ===============================
 async function loadAudio() {
     const res = await fetch("audioList.json");
@@ -165,7 +162,10 @@ async function loadAudio() {
 
         const filePath = "audio/" + item.file;
 
-        // 🔥 Controllo se il file esiste davvero nella cartella audio
+        // Nome senza estensione
+        const baseName = item.file.replace(/\.[^/.]+$/, "");
+
+        // Controllo esistenza file
         let exists = true;
         try {
             const check = await fetch(filePath, { method: "HEAD" });
@@ -178,22 +178,18 @@ async function loadAudio() {
         box.className = "DemoBox";
 
         if (!exists) {
-            // 🔥 FILE MANCANTE → MOSTRA TAKEN
             box.innerHTML = `
-                <div class="DemoTitle">${item.file} 
+                <div class="DemoTitle">${baseName} 
                     <span style="color:#ff4444; font-weight:bold;">(taken)</span>
                 </div>
                 <div style="opacity:0.4; font-size:14px;">This demo is taken</div>
             `;
-
-            // Nessun canvas, nessun player, nessun observer
             container.appendChild(box);
             continue;
         }
 
-        // 🔥 FILE ESISTE → CREA PLAYER
         box.innerHTML = `
-            <div class="DemoTitle">${item.file}</div>
+            <div class="DemoTitle">${baseName}</div>
             <canvas class="WaveCanvas"></canvas>
         `;
         box.dataset.file = item.file;
@@ -201,7 +197,6 @@ async function loadAudio() {
         container.appendChild(box);
     }
 
-    // Observer per waveform (solo box con file esistenti)
     waveformObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -222,19 +217,16 @@ async function loadAudio() {
     });
 }
 
-
 // ===============================
 //  GLOBAL CONTROLS + COLORI CSS
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    // Prendi i colori CSS qui (dopo che il CSS è caricato)
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";
 
     loadAudio();
 
-    // Volume
     const volInput = document.getElementById("globalVolume");
     const volLabel = document.getElementById("volLabel");
     if (volInput) {
@@ -248,7 +240,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Speed (simile al volume)
     const speedInput = document.getElementById("globalSpeed");
     const speedLabel = document.getElementById("speedLabel");
     if (speedInput) {
@@ -262,7 +253,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Pulsanti cent (opzionale)
     document.querySelectorAll(".centBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             const cent = parseInt(btn.dataset.cent);
