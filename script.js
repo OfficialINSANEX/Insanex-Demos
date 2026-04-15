@@ -106,23 +106,15 @@ async function loadReactions(box) {
 
     try {
         const res = await fetch(`${REACT_API}?track=${encodeURIComponent(track)}`);
-        if (!res.ok) {
-            console.warn("Errore HTTP reazioni per:", track, res.status);
-            return;
-        }
+        if (!res.ok) return;
 
-        const data = await res.json(); // {like, fire, dislike}
+        const data = await res.json();
 
-        const likeEl = box.querySelector('.reactCount[data-react="like"]');
-        const fireEl = box.querySelector('.reactCount[data-react="fire"]');
-        const dislikeEl = box.querySelector('.reactCount[data-react="dislike"]');
+        box.querySelector('.reactCount[data-react="like"]').textContent = data.like || 0;
+        box.querySelector('.reactCount[data-react="fire"]').textContent = data.fire || 0;
+        box.querySelector('.reactCount[data-react="dislike"]').textContent = data.dislike || 0;
 
-        if (likeEl) likeEl.textContent = data.like || 0;
-        if (fireEl) fireEl.textContent = data.fire || 0;
-        if (dislikeEl) dislikeEl.textContent = data.dislike || 0;
-
-        const local = getLocalReaction(track);
-        updateReactionUI(box, local);
+        updateReactionUI(box, getLocalReaction(track));
 
     } catch (err) {
         console.warn("Errore caricamento reazioni per:", track, err);
@@ -145,7 +137,6 @@ async function sendReaction(track, reaction) {
 
         const data = await res.json();
 
-        // Aggiorna subito i numeri nella UI
         const box = document.querySelector(`.DemoBox[data-file="${track}"]`);
         if (box) {
             box.querySelector('.reactCount[data-react="like"]').textContent = data.like;
@@ -157,7 +148,6 @@ async function sendReaction(track, reaction) {
         console.warn("Errore invio reazione:", err);
     }
 }
-
 
 
 // ===============================
@@ -173,7 +163,7 @@ function enableReactionsForBox(box) {
             const current = getLocalReaction(track);
 
             let newReaction = chosen;
-            if (current === chosen) newReaction = null; // toggle off
+            if (current === chosen) newReaction = null;
 
             setLocalReaction(track, newReaction);
             updateReactionUI(box, newReaction);
@@ -235,8 +225,11 @@ async function createWaveformForVisible(box) {
             ctx.fillStyle = "#050510";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const played = box.classList.contains("gold") ? "gold" : wavePlayedColor;
-            const unplayed = box.classList.contains("gold") ? "#7a5a00" : waveUnplayedColor;
+            const isDiamond = box.classList.contains("diamond");
+            const isGold = box.classList.contains("gold");
+
+            const played = isDiamond ? "#00eaff" : isGold ? "gold" : wavePlayedColor;
+            const unplayed = isDiamond ? "#006b80" : isGold ? "#7a5a00" : waveUnplayedColor;
 
             normalizedData.forEach((val, i) => {
                 const barHeight = val * (canvas.height / 2);
@@ -353,7 +346,9 @@ async function loadAudio() {
 
         const box = document.createElement("div");
         box.className = "DemoBox";
+
         if (item.gold) box.classList.add("gold");
+        if (item.diamond) box.classList.add("diamond"); // <— FIX
 
         if (!exists) {
             box.classList.add("taken");
@@ -476,7 +471,6 @@ function toggleLoop() {
 //  DOM CONTENT LOADED
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
-    // Controls
     const playBtn = document.getElementById("playBtn");
     const nextBtn = document.getElementById("nextBtn");
     const prevBtn = document.getElementById("prevBtn");
@@ -487,15 +481,12 @@ window.addEventListener("DOMContentLoaded", () => {
     if (prevBtn) prevBtn.addEventListener("click", prevTrack);
     if (loopBtn) loopBtn.addEventListener("click", toggleLoop);
 
-    // Wave colors
     const rootStyles = getComputedStyle(document.documentElement);
     wavePlayedColor = rootStyles.getPropertyValue("--wave-played").trim() || "#ffaa55";
     waveUnplayedColor = rootStyles.getPropertyValue("--wave-unplayed").trim() || "#ff5500";
 
-    // Load audio list
     loadAudio();
 
-    // Volume
     const volInput = document.getElementById("globalVolume");
     const volLabel = document.getElementById("volLabel");
     if (volInput) {
@@ -509,7 +500,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Speed
     const speedInput = document.getElementById("globalSpeed");
     const speedLabel = document.getElementById("speedLabel");
     if (speedInput) {
@@ -523,7 +513,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Cent buttons
     document.querySelectorAll(".centBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             const cent = parseInt(btn.dataset.cent);
@@ -536,7 +525,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Popup
     const popup = document.getElementById("insanexPopupOverlay");
     const popupBtn = document.getElementById("insanexPopupBtn");
     if (popup && popupBtn) {
