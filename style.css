@@ -463,3 +463,42 @@ HEADER DELLA DEMOBOX (TITOLO + REAZIONI)
     color: white !important;
     opacity: 0.85;
 }
+
+/* ===============================
+   DIAMOND TRACK STYLE
+=============================== */
+
+.DemoBox.diamond {
+    border: 2px solid #00eaff;
+    box-shadow:
+        0 0 12px #00eaff,
+        0 0 28px rgba(0,234,255,0.7),
+        inset 0 0 12px rgba(0,234,255,0.4);
+    background: linear-gradient(135deg, #02131a, #031f2b);
+}
+
+.DemoBox.diamond .DemoTitle {
+    color: #00eaff;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00eaff;
+}
+
+/* Waveform diamond */
+.DemoBox.diamond .WaveCanvas {
+    background: #00141a;
+    box-shadow: 0 0 14px rgba(0,234,255,0.4);
+    border: 1px solid rgba(0,234,255,0.4);
+}
+
+/* Reaction highlight per diamond */
+.DemoBox.diamond .reactIcon.active {
+    color: #00eaff;
+    border-color: #00eaff;
+}
+
+/* Views counter */
+.DemoBox.diamond .viewCounter {
+    color: #00eaff !important;
+    font-weight: bold;
+    text-shadow: 0 0 8px #00eaff;
+}
